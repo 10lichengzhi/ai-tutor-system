@@ -9,22 +9,22 @@ export interface LearningDirectionOption {
 
 export const LEARNING_DIRECTIONS: LearningDirectionOption[] = [
   {
-    id: 'embedded_robot',
-    name: '嵌入式Linux + 机器人',
-    icon: '🤖',
-    description: 'C语言、单片机、STM32、Linux驱动、ROS机器人开发'
-  },
-  {
     id: 'frontend',
-    name: '前端开发',
-    icon: '💻',
-    description: 'HTML/CSS、JavaScript、React、Vue、工程化'
+    name: '数学',
+    icon: '📐',
+    description: '初中数学、高中数学，代数、几何、函数、微积分基础'
   },
   {
     id: 'backend',
-    name: '后端开发',
-    icon: '⚙️',
-    description: 'Java/Python/Go、数据库、微服务、分布式'
+    name: '物理',
+    icon: '⚡',
+    description: '初中物理、高中物理，力学、电磁学、光学、热学'
+  },
+  {
+    id: 'embedded_robot',
+    name: '英语',
+    icon: '📖',
+    description: '初中英语、高中英语，语法、阅读、写作、听力'
   },
   {
     id: 'custom',
