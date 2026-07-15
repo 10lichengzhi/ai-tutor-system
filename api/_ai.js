@@ -17,10 +17,18 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // 从自定义请求头获取路由（由 vercel.json routes 设置）
-  let routePath = req.headers['x-api-route'] || '';
+  // 从查询参数获取路由（由 vercel.json rewrites 设置）
+  let routePath = '';
+  if (req.query && req.query._route) {
+    routePath = Array.isArray(req.query._route) ? req.query._route.join('/') : req.query._route;
+  }
 
-  // 兜底：从 req.url 解析
+  // 兜底1：从自定义请求头获取
+  if (!routePath) {
+    routePath = req.headers['x-api-route'] || '';
+  }
+
+  // 兜底2：从 req.url 解析
   if (!routePath) {
     const urlPath = (req.url || '').split('?')[0];
     const match = urlPath.match(/^\/api\/(v1\/)?ai\/?(.*)$/);
