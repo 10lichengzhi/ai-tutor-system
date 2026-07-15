@@ -6,11 +6,10 @@
       "maxDuration": 60
     }
   },
-  "routes": [
-    { "src": "/api/v1/ai/(.*)", "dest": "/api/_ai", "headers": { "x-api-route": "$1" } },
-    { "src": "/api/ai/(.*)", "dest": "/api/_ai", "headers": { "x-api-route": "$1" } },
-    { "src": "/health", "dest": "/api/health" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/v1/ai/:path*", "destination": "/api/_ai?_route=:path*" },
+    { "source": "/api/ai/:path*", "destination": "/api/_ai?_route=:path*" },
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
