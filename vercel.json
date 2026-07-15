@@ -1,0 +1,13 @@
+{
+  "buildCommand": "cd frontend && npm install --registry=https://registry.npmmirror.com && npm run build",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    { "source": "/api/v1/ai/(.*)", "destination": "/api/ai/$1" },
+    { "source": "/health", "destination": "/api/health" }
+  ]
+}
