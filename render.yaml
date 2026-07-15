@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: ai-tutor-system
+    runtime: node
+    plan: free
+    buildCommand: |
+      cd frontend
+      npm install --registry=https://registry.npmmirror.com
+      npm run build
+    startCommand: node proxy-server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: PORT
+        value: 8000
+      - key: AGNES_API_KEY
+        sync: false
+      - key: AGNES_BASE_URL
+        value: https://apihub.agnes-ai.com/v1
+      - key: DEFAULT_MODEL
+        value: agnes-2.0-flash
+      - key: ALLOWED_ORIGINS
+        value: "*"
