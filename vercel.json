@@ -6,8 +6,11 @@
       "maxDuration": 60
     }
   },
-  "rewrites": [
-    { "source": "/api/v1/ai/(.*)", "destination": "/api/ai/$1" },
-    { "source": "/health", "destination": "/api/health" }
+  "routes": [
+    { "src": "/api/v1/ai/(.*)", "dest": "/api/_ai", "headers": { "x-api-route": "$1" } },
+    { "src": "/api/ai/(.*)", "dest": "/api/_ai", "headers": { "x-api-route": "$1" } },
+    { "src": "/health", "dest": "/api/health" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
