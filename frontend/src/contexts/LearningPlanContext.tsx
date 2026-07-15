@@ -577,8 +577,8 @@ export function LearningPlanProvider({ children }: { children: ReactNode }) {
     setWizardMessages([{
       id: `msg-${Date.now()}`,
       role: 'ai',
-      content: '你好呀！👋 我是你的AI学习规划师。在开始定制专属学习方案之前，我想先了解一下你的情况。\n\n首先，你最想学什么呢？比如某个编程语言、一项技术、或者准备某个考试？',
-      suggestedAnswers: ['前端开发', '后端/Java', 'Python数据分析', '嵌入式/单片机', '考研数学', '英语四六级', '其他（我自己输入）'],
+      content: '你好呀！👋 我是你的AI学习规划师。在开始定制专属学习方案之前，我想先了解一下你的情况。\n\n首先，你现在读几年级呢？或者你最想提升哪个科目？',
+      suggestedAnswers: ['初中数学', '高中数学', '初中物理', '高中物理', '初中英语', '高中英语', '中考复习', '高考复习', '其他（我自己输入）'],
       timestamp: new Date().toISOString(),
     }])
     setCollectedInfo({})
