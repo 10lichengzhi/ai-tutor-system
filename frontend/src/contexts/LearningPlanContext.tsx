@@ -578,7 +578,7 @@ export function LearningPlanProvider({ children }: { children: ReactNode }) {
       id: `msg-${Date.now()}`,
       role: 'ai',
       content: '你好呀！👋 我是你的AI学习规划师。在开始定制专属学习方案之前，我想先了解一下你的情况。\n\n首先，你现在读几年级呢？或者你最想提升哪个科目？',
-      suggestedAnswers: ['初中数学', '高中数学', '初中物理', '高中物理', '初中英语', '高中英语', '中考复习', '高考复习', '其他（我自己输入）'],
+      suggestedAnswers: ['高中数学', '高中物理', '高中英语', '高中化学', '初中数学', '初中物理', '高考冲刺', '中考冲刺', '其他（我自己输入）'],
       timestamp: new Date().toISOString(),
     }])
     setCollectedInfo({})
