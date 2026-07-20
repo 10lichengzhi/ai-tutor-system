@@ -1,21 +1,36 @@
 import { useState } from 'react'
-import { User, LogIn, Settings2, X } from 'lucide-react'
+import { User, LogIn, Settings2, LogOut, X } from 'lucide-react'
 import { useBackground } from '../../contexts/BackgroundContext'
+import { useAuth } from '../../contexts/AuthContext'
 import BackgroundSettings from './BackgroundSettings'
+import AuthModal from '../auth/AuthModal'
 
 const Header = () => {
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const { settingsOpen, setSettingsOpen } = useBackground()
+  const { user, logout } = useAuth()
 
-  const showNotAvailable = (feature: string) => {
-    setToastMessage(`${feature}功能暂未开放，敬请期待！`)
+  const showToastMsg = (msg: string) => {
+    setToastMessage(msg)
     setShowToast(true)
     setTimeout(() => setShowToast(false), 2500)
   }
 
   const toggleBackgroundSettings = () => {
     setSettingsOpen(!settingsOpen)
+  }
+
+  const openAuth = (mode: 'login' | 'register') => {
+    setAuthMode(mode)
+    setAuthModalOpen(true)
+  }
+
+  const handleLogout = () => {
+    logout()
+    showToastMsg('已退出登录')
   }
 
   return (
@@ -39,22 +54,52 @@ const Header = () => {
             </button>
             <BackgroundSettings />
           </div>
-          <button
-            className="header-btn"
-            onClick={() => showNotAvailable('登录')}
-          >
-            <LogIn size={16} className="inline mr-1.5" />
-            登录
-          </button>
-          <button
-            className="header-btn-primary"
-            onClick={() => showNotAvailable('注册')}
-          >
-            <User size={16} className="inline mr-1.5" />
-            注册
-          </button>
+
+          {user ? (
+            <>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                <div className="w-6 h-6 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                  {user.nickname.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm text-amber-300">{user.nickname}</span>
+              </div>
+              <button
+                className="header-btn"
+                onClick={handleLogout}
+                title="退出登录"
+              >
+                <LogOut size={16} className="inline mr-1.5" />
+                退出
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="header-btn"
+                onClick={() => openAuth('login')}
+              >
+                <LogIn size={16} className="inline mr-1.5" />
+                登录
+              </button>
+              <button
+                className="header-btn-primary"
+                onClick={() => openAuth('register')}
+              >
+                <User size={16} className="inline mr-1.5" />
+                注册
+              </button>
+            </>
+          )}
         </div>
       </header>
+
+      {/* 认证弹窗 */}
+      <AuthModal
+        isOpen={authModalOpen}
+        mode={authMode}
+        onClose={() => setAuthModalOpen(false)}
+        onSwitchMode={setAuthMode}
+      />
 
       {/* Toast提示 */}
       {showToast && (
