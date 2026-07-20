@@ -17,6 +17,7 @@ import { LearningPlanProvider } from './contexts/LearningPlanContext'
 import { WrongAnswersProvider } from './contexts/WrongAnswersContext'
 import { ExercisesProvider } from './contexts/ExercisesContext'
 import { BackgroundProvider } from './contexts/BackgroundContext'
+import { AuthProvider } from './contexts/AuthContext'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import './App.css'
 
@@ -24,6 +25,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
+        <AuthProvider>
         <SettingsProvider>
           <LearningStatsProvider>
             <LearningPlanProvider>
@@ -55,6 +57,7 @@ function App() {
             </LearningPlanProvider>
           </LearningStatsProvider>
         </SettingsProvider>
+        </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
   )
