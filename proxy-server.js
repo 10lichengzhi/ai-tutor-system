@@ -9,6 +9,7 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { handleRegister, handleLogin, handleMe, getUserFromRequest } = require('./auth');
 
 // ========== 加载 .env 文件 ==========
 (function loadEnv() {
@@ -133,6 +134,7 @@ function sendJSON(res, statusCode, data, req) {
 // ========== 工具函数：代理HTTPS请求 ==========
 function proxyHttpRequest(targetUrl, options, body, res, isStream = false, req) {
   const url = new URL(targetUrl);
+  const apiKey = options.apiKey || AGNES_API_KEY;
 
   const requestOptions = {
     hostname: url.hostname,
@@ -140,7 +142,7 @@ function proxyHttpRequest(targetUrl, options, body, res, isStream = false, req) 
     path: url.pathname + url.search,
     method: options.method || 'GET',
     headers: {
-      'Authorization': `Bearer ${AGNES_API_KEY}`,
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       ...options.headers,
     },
@@ -344,7 +346,18 @@ const TUTOR_PERSONALITIES = {
 function handleChat(bodyData, res, isStream = false, isTutor = false, req) {
   try {
     let messages = bodyData.messages || [];
-    const model = bodyData.model || DEFAULT_MODEL;
+    const customModel = bodyData.customModel;
+    let model = bodyData.model || DEFAULT_MODEL;
+    let baseUrl = AGNES_BASE_URL;
+    let apiKey = AGNES_API_KEY;
+    
+    // 如果有自定义模型配置，使用自定义配置
+    if (customModel && customModel.baseUrl && customModel.apiKey && customModel.modelName) {
+      model = customModel.modelName;
+      baseUrl = customModel.baseUrl.replace(/\/$/, '');
+      apiKey = customModel.apiKey;
+    }
+    
     const personality = bodyData.personality || 'socratic';
     const learningMode = bodyData.learningMode;
     const thinkingStrategy = bodyData.thinkingStrategy;
@@ -391,8 +404,8 @@ function handleChat(bodyData, res, isStream = false, isTutor = false, req) {
     };
 
     proxyHttpRequest(
-      `${AGNES_BASE_URL}/chat/completions`,
-      { method: 'POST' },
+      `${baseUrl}/chat/completions`,
+      { method: 'POST', apiKey: apiKey },
       requestBody,
       res,
       isStream,
@@ -637,6 +650,37 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    // ========== 用户认证路由 ==========
+    if (url === '/api/auth/register' && req.method === 'POST') {
+      const body = await readBody(req, res);
+      try {
+        const data = JSON.parse(body || '{}');
+        const result = handleRegister(data);
+        sendJSON(res, result.status, result.data, req);
+      } catch (e) {
+        sendJSON(res, 400, { code: -1, message: '请求格式错误: ' + e.message }, req);
+      }
+      return;
+    }
+
+    if (url === '/api/auth/login' && req.method === 'POST') {
+      const body = await readBody(req, res);
+      try {
+        const data = JSON.parse(body || '{}');
+        const result = handleLogin(data);
+        sendJSON(res, result.status, result.data, req);
+      } catch (e) {
+        sendJSON(res, 400, { code: -1, message: '请求格式错误: ' + e.message }, req);
+      }
+      return;
+    }
+
+    if (url === '/api/auth/me' && req.method === 'GET') {
+      const result = handleMe(req);
+      sendJSON(res, result.status, result.data, req);
+      return;
+    }
+
     // API v1 前缀处理: /api/v1/ai/* -> /api/ai/*
     let path = url;
     if (path.startsWith('/api/v1/ai/')) {
@@ -873,20 +917,26 @@ const server = http.createServer(async (req, res) => {
         const { messages, collectedInfo } = data;
         const model = data.model || DEFAULT_MODEL;
 
-        const systemPrompt = `你是一位专业的学习规划师，正在通过友好对话了解学生的学习需求，为其量身定制学习方案。
+        const systemPrompt = `你是一位专业的学习规划师，主要面向中学生（以高中生为主，兼顾初中生），同时也支持成人学习者和职业方向，通过友好对话了解学生的学习需求，为其量身定制学习方案。
 
 【你的任务】
 像朋友聊天一样，通过多轮对话自然地收集以下信息（不要一次性问完，每次只问1-2个问题）：
-1. 想学什么（具体方向/技术/科目）
-2. 学习目标（兴趣/工作/考试/转行等）
-3. 当前基础（零基础/入门/有一定基础/熟练）
-4. 可投入时间（每天多久、每周几天）
-5. 学习偏好（视频/看书/动手实践/混合）
-6. 期望多久学成/有无截止日期
-7. 特殊需求（如考研、求职、做项目等）
+1. 身份和方向：中学生（高一/高二/高三为主，也涵盖初一/初二/初三，科目如数学/物理/英语/化学等）或成人学习者（编程开发/考研/考证/职业提升/兴趣学习等）
+2. 学习目标（日常提升/期中考试/期末考试/高考/中考/求职/转行/考证/竞赛等）
+3. 当前基础（零基础/薄弱/一般/良好/优秀）
+4. 可投入时间（每天多久、每周几天/周末是否有时间）
+5. 学习偏好（看视频/刷题/看书/老师讲解/动手实践/混合）
+6. 薄弱环节或重点需求（具体哪些知识点不会/哪些技能想掌握）
+7. 特殊需求（如艺考、体育生、特长生、冲刺名校、求职准备、项目实战等）
+
+【快捷选项参考】
+- 高中方向：高中数学、高中物理、高中英语、高中化学、高考冲刺
+- 初中方向：初中数学、初中物理、初中英语、中考冲刺
+- 成人/职业：编程开发（前端/后端/Python）、考研/考证、职业提升、兴趣学习
 
 【对话原则】
 - 语气亲切友好，像学长/学姐一样聊天
+- 根据用户身份（学生/成人）调整对话风格和推荐方向
 - 每次回复后给出2-4个快捷回答选项，方便用户选择
 - 根据用户回答自然追问，不要生硬
 - 信息收集足够后（至少覆盖前5项），告诉用户"信息收集完毕，我来为你生成学习总纲"
